@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ v<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -94,7 +94,7 @@
     <div class="chat-container">
         <div class="chat-box" id="chatBox"></div>
         <div class="input-container">
-            <input type="text" id="userInput" placeholder="Type your message..." autofocus onkeydown="if(event.key === 'Enter'){sendMessage()}"/>
+            <input type="text" id="userInput" placeholder="Type your message..." autofocus/>
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
@@ -139,9 +139,13 @@
             // Remove the typing indicator and add the bot response
             const chatBox = document.getElementById('chatBox');
             const typingIndicator = chatBox.querySelector('.typing-indicator');
-            typingIndicator.parentNode.removeChild(typingIndicator);
+            if (typingIndicator) {
+                typingIndicator.parentNode.removeChild(typingIndicator);
+            }
 
-            appendMessage(responseMessage, 'bot');
+            // Add emojis to the response message
+            const responseWithEmoji = addEmojiToResponse(responseMessage);
+            appendMessage(responseWithEmoji, 'bot');
         }
 
         // Function to add emojis to responses
@@ -157,12 +161,18 @@
             };
 
             for (let word in emojiMap) {
-                if (message.includes(word)) {
-                    message = message.replace(word, emojiMap[word]);
-                }
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                message = message.replace(regex, emojiMap[word]);
             }
             return message;
         }
+
+        // Event listener for Enter key press
+        document.getElementById('userInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
     </script>
 
 </body>
