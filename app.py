@@ -7,14 +7,16 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
+from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS for enabling cross-origin requests
 
-# Download nltk data
+# Download necessary NLTK resources
 nltk.download('punkt')
 
 # Load spaCy model for NLP tasks (e.g., tokenization, lemmatization)
 nlp = spacy.load("en_core_web_sm")
 
-# Define some intents (simplified example)
+# Define intents (simplified example)
 intents = {
     "greeting": ["hello", "hi", "hey", "howdy", "yo", "what's up"],
     "goodbye": ["bye", "goodbye", "see you later", "take care"],
@@ -69,7 +71,8 @@ def process_input(user_input):
     processed_input = " ".join([token.lemma_ for token in doc if not token.is_stop])
     return processed_input
 
-# Chatbot loop
+
+# Chatbot loop for command-line interface
 def start_chat():
     print("Chatbot: Hi! I'm a more advanced chatbot. Type 'bye' to exit.")
     
@@ -91,16 +94,39 @@ def start_chat():
         
         print(f"Chatbot: {response}")
 
-if __name__ == "__main__":
-    start_chat()
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
 
-# Initialize Flask app
+# Flask API to interact with the chatbot via HTTP requests
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Your existing code...
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.json
+    user_input = data.get("message", "").strip()  # Avoid issues if 'message' is missing or empty
+    
+    if not user_input:
+        return jsonify({"response": "Please provide a message!"})  # Respond if the message is empty
+    
+    # If user says "bye" or "goodbye", exit immediately
+    if user_input.lower() in ["bye", "goodbye"]:
+        return jsonify({"response": "Goodbye! It was nice talking to you."})
+    
+    # Clean and process the user input
+    processed_input = process_input(user_input)
+    
+    # Get the predicted intent for the input
+    intent = get_intent(processed_input)
+    
+    # Get a response based on the predicted intent
+    response = get_response(intent)
+    
+    return jsonify({"response": response})
 
+
+# Running the chatbot in two modes (CLI or Web API)
 if __name__ == "__main__":
+    # Option 1: Run the chatbot in CLI mode
+    # start_chat()
+
+    # Option 2: Run Flask API mode
     app.run(debug=True)
