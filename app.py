@@ -93,3 +93,14 @@ def start_chat():
 
 if __name__ == "__main__":
     start_chat()
+from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS
+
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
+# Your existing code...
+
+if __name__ == "__main__":
+    app.run(debug=True)
